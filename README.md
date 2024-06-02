@@ -66,7 +66,16 @@ Após a implementação dos serviços, adicione a implementação do OTEL + Zipk
 
 É possível encontrar todas as instruções de como baixar e instalar o `Git` nos sistemas operacionais Windows, Mac ou Linux [aqui](https://www.git-scm.com/downloads).
 
-#### 3. Clonar o repositório:
+
+#### 3. Instalar o Docker no sistema operacional:
+
+É possível encontrar todas as instruções de como baixar e instalar o Docker nos sistemas operacionais Windows, Mac ou Linux [aqui](https://docs.docker.com/engine/install/).
+
+#### 4. (Opcional) Instalar a extensão REST Client no VSCode:
+
+É possível encontrar todas as instruções de como instalar a extensão REST Client no VSCode [aqui](https://marketplace.visualstudio.com/items?itemName=humao.rest-client).
+
+#### 5. Clonar o repositório:
 
 ```
 git clone git@github.com:raphapaulino/pos-graduacao-goexpert-labs-desafio-2-distributed-tracing-and-span.git
@@ -80,11 +89,11 @@ git clone git@github.com:raphapaulino/pos-graduacao-goexpert-labs-desafio-2-dist
 docker-compose up -d
 ```
 
-Obs.: Esse comando irá subir ambos serviços A e B desse projeto mais o Zipikin.
+Obs.: Esse comando irá subir ambos serviços A e B desse projeto mais o Zipkin.
 
 ## Testes
 
-1. Para acessar a rota do serviço, utilize algum aplicativo como Postman, Insomnia ou mesmo a extensão Rest Client para fazer uma requisição via método POST do protocolo HTTP no seguinte endereço:
+1. Para acessar a rota do serviço, utilize algum aplicativo como `Postman`, `Insomnia` ou mesmo a extensão `Rest Client` do `VSCode` para fazer uma requisição via método POST do protocolo HTTP no seguinte endereço:
 
 
 ```
