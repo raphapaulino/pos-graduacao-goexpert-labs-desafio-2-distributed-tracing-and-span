@@ -91,6 +91,12 @@ docker-compose up -d
 
 Obs.: Esse comando irá subir ambos serviços A e B desse projeto mais o Zipkin.
 
+2. (Opcional) Como passo adicional para a correta construção dos containers desse projeto, utilize o comando abaixo que irá resultar em um rebuild caso já tenha executado o comando do passo 1 e não houve uma resposta com o resultado esperado:
+
+```
+docker compose up -d --no-deps --build
+```
+
 ## Testes
 
 1. Para acessar a rota do serviço, utilize algum aplicativo como `Postman`, `Insomnia` ou mesmo a extensão `Rest Client` do `VSCode` para fazer uma requisição via método POST do protocolo HTTP no seguinte endereço:

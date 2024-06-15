@@ -187,7 +187,7 @@ func handleGetTemperatureByCEP(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	address, err := getAddressFromViaCEP(cep, ctx)
-	if err != nil {
+	if err != nil || address.Erro {
 		http.Error(w, "can not find zipcode", http.StatusNotFound)
 		return
 	}
