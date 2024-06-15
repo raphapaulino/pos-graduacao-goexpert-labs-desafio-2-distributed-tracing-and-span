@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -66,16 +67,22 @@ func main() {
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// Read request body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "invalid zipcode", http.StatusUnprocessableEntity)
+		http.Error(w, `{"error": "unable to read request body"}`, http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
+	// Unmarshal request body into cep struct
 	var cep CEP
 	err = json.Unmarshal(body, &cep)
 	if err != nil {
-		http.Error(w, "invalid zipcode", http.StatusUnprocessableEntity)
+		http.Error(w, `{"error": "invalid JSON"}`, http.StatusBadRequest)
 		return
 	}
 
@@ -84,22 +91,28 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	defer span.End()
 
 	if !isValidZipcode(cep.Cep) {
-		http.Error(w, "invalid zipcode", http.StatusUnprocessableEntity)
+		http.Error(w, `{"error": "invalid zipcode"}`, http.StatusUnprocessableEntity)
 		return
 	}
 
 	temperature, status, err := getTemperature(cep.Cep, ctx)
 	if err != nil {
-		http.Error(w, "invalid zipcode", status)
+		// http.Error(w, fmt.Sprintf(`{"error": "unable to get temperature, status: %d"}`, status), status)
+		http.Error(w, fmt.Sprintf(`{"error": "can not find zipcode, status: %d"}`, status), status)
 		return
 	}
 
 	jsonData, err := json.Marshal(temperature)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, `{"error": "internal server error"}`, http.StatusInternalServerError)
 		return
 	}
-	w.Write([]byte(jsonData))
+
+	// Write response
+	_, err = w.Write(jsonData)
+	if err != nil {
+		http.Error(w, `{"error": "unable to write response"}`, http.StatusInternalServerError)
+	}
 }
 
 // Call service B
@@ -109,24 +122,23 @@ func getTemperature(cep string, ctx context.Context) (*TemperatureResponse, int,
 
 	req, err := http.NewRequestWithContext(ctx, "GET", "http://goapp-service-b:8081/"+cep, nil)
 	if err != nil {
-		return nil, http.StatusUnprocessableEntity, err
+		return nil, http.StatusBadRequest, err
 	}
 
 	resp, err := http.DefaultClient.Do(req)
-
 	if err != nil {
-		return nil, http.StatusUnprocessableEntity, err
+		return nil, http.StatusServiceUnavailable, err
 	}
+	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, http.StatusUnprocessableEntity, err
+	if resp.StatusCode != http.StatusOK {
+		return nil, resp.StatusCode, errors.New("failed to get temperature")
 	}
 
 	var temperatureResponse TemperatureResponse
-	err = json.Unmarshal(body, &temperatureResponse)
+	err = json.NewDecoder(resp.Body).Decode(&temperatureResponse)
 	if err != nil {
-		return nil, http.StatusUnprocessableEntity, err
+		return nil, http.StatusInternalServerError, err
 	}
 
 	return &temperatureResponse, http.StatusOK, nil
